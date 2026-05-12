@@ -7,8 +7,6 @@ import (
 
 	"golang.org/x/crypto/ssh"
 )
-
-// SSHClient — обертка над нативным клиентом
 type SSHClient struct {
 	client *ssh.Client
 }
@@ -29,7 +27,7 @@ func NewSSHClient(user, host string, port int, keyPath string) (*SSHClient, erro
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(signer),
 		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // Для начала сойдет, потом сделаем проверку
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		Timeout:         15 * time.Second,
 	}
 
@@ -42,7 +40,6 @@ func NewSSHClient(user, host string, port int, keyPath string) (*SSHClient, erro
 	return &SSHClient{client: client}, nil
 }
 
-// Run выполняет команду и возвращает вывод (stdout + stderr)
 func (s *SSHClient) Run(cmd string) (string, error) {
 	session, err := s.client.NewSession()
 	if err != nil {
