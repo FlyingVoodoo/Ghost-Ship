@@ -1,0 +1,6 @@
+; Linguist configuration for GitHub language detection
+; Explicitly mark this as a C++ project
+
+[linguist]
+    language = C++
+    vendored = false
