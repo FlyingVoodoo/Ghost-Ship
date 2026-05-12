@@ -1,0 +1,50 @@
+# Binaries
+/bin/
+/build/
+/dist/
+*_output/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go
+vendor/
+Godeps/
+# keep go.mod and go.sum tracked
+
+# macOS
+.DS_Store
+
+# Editors/IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# C/C++ / native build
+/clib/build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.o
+*.obj
+*.a
+*.lib
+
+# Logs, coverage
+*.log
+coverage.out
+
+# Secrets
+*.pem
+*.key
+*.env
+
+# Node
+node_modules/
