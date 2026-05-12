@@ -1,14 +1,4 @@
-* eol=lf
-
-# C++ files - explicit language declaration
-*.cpp linguist-language=C++ diff=cpp merge=union
-*.hpp linguist-language=C++ diff=cpp merge=union  
-*.h linguist-language=C++ diff=cpp merge=union
-
-# CMake
-CMakeLists.txt linguist-language=CMake
-
-# Documentation
-*.md text
-README.md text
-LICENSE text
+*.cpp text diff=cpp
+*.hpp text diff=cpp
+*.h text diff=cpp
+CMakeLists.txt text
