@@ -1,15 +1,15 @@
 * text=auto
 
 # Go
-*.go text eol=lf
-go.mod text eol=lf
-go.sum text eol=lf
+*.go text eol=lf linguist-language=Go
+go.mod text eol=lf linguist-language=Go
+go.sum text eol=lf linguist-language=Go
 
 # C++
-*.cpp text eol=lf
-*.hpp text eol=lf
-*.h text eol=lf
-CMakeLists.txt text eol=lf
+*.cpp text eol=lf linguist-language=C++
+*.hpp text eol=lf linguist-language=C++
+*.h text eol=lf linguist-language=C++
+CMakeLists.txt text eol=lf linguist-language=CMake
 
 # Other configs
 *.yaml text eol=lf
