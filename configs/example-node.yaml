@@ -1,0 +1,14 @@
+# configs/example-node.yaml
+node:
+  role: relay          # relay | exit
+  location: ru         # ru | nl | de
+  hostname: relay-ru-01
+
+firewall:
+  allow_ports: [22, 443, 8443]
+
+services:
+  - name: 3x-ui
+    image: ghcr.io/mhsanaei/3x-ui:latest
+    volumes:
+      - /opt/3x-ui/db:/etc/x-ui
