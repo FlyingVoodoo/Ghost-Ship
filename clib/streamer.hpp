@@ -1,5 +1,11 @@
 #pragma once
 
+// Ghost-Ship Secure Streamer Library (C++20)
+// Modern high-performance encryption & compression for arbitrary data
+// AES-256-GCM authenticated encryption + LZ4 compression
+// Features: single-allocation optimization, streaming API, RAII Result<T>
+// Thread-safe at object level, C++20 with std::span/std::array/move-semantics
+
 #include <cstdint>
 #include <cstring>
 #include <cstdlib>
