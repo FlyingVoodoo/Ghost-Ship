@@ -1,14 +1,14 @@
-* text=auto
+* eol=lf
 
-# C++
-*.cpp text eol=lf linguist-language=C++
-*.hpp text eol=lf linguist-language=C++
-*.h text eol=lf linguist-language=C++
+# C++ files - explicit language declaration
+*.cpp linguist-language=C++ diff=cpp merge=union
+*.hpp linguist-language=C++ diff=cpp merge=union  
+*.h linguist-language=C++ diff=cpp merge=union
 
 # CMake
-CMakeLists.txt text eol=lf linguist-language=CMake
+CMakeLists.txt linguist-language=CMake
 
-# Configs
-*.yaml text eol=lf
-*.json text eol=lf
-*.md text eol=lf
+# Documentation
+*.md text
+README.md text
+LICENSE text
