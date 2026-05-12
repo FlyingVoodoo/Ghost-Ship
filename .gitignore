@@ -1,0 +1,34 @@
+# Build
+/build/
+/dist/
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Executables
+streamer_test
+streamer_bench
+/bin/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+*.xcworkspace/
+
+# Secrets
+*.pem
+*.key
+.env
+.env.local
