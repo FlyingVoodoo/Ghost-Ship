@@ -1,5 +1,5 @@
 /**
- * Ghost-Ship :: C++ Secure Streamer (C++20 Edition)
+ * Ghost-Ship :: C++ Secure Streamer
  *
  * Pipeline: raw bytes -> LZ4 compress -> AES-256-GCM encrypt -> wire
  * Optimized single allocation, stateful API, streaming support.
