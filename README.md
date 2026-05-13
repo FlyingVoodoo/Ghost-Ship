@@ -1,5 +1,11 @@
 # Ghost-Ship
 
+![Language: Go](https://img.shields.io/badge/Language-Go-00ADD8?style=flat-square&logo=go&logoColor=white)
+![Language: C++](https://img.shields.io/badge/Language-C%2B%2B-00599C?style=flat-square&logo=cplusplus&logoColor=white)
+![Nomad](https://img.shields.io/badge/Nomad-051420?style=flat-square&logo=hashicorp&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
+![Security: AES-256-GCM](https://img.shields.io/badge/Security-AES--256--GCM-green?style=flat-square)
+
 Infrastructure migration engine. Extracts full system state (databases, certs, Docker containers, Nomad jobs) from source server, provisions target identically, restores everything without downtime.
 
 ## Overview
