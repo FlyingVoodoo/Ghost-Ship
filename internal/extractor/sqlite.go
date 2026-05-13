@@ -10,7 +10,7 @@ import (
 	"github.com/matvejefimovyh/ghost-ship/pkg/sshutil"
 )
 
-// ExtractDatabase retrieves SQLite database from server via SSH
+// ExtractDatabase retrieves SQLite database with privilege escalation
 func ExtractDatabase(client *sshutil.SSHClient, dbPath string) ([]byte, error) {
 	slog.Info("extracting database", "path", dbPath)
 
@@ -35,7 +35,7 @@ func ExtractDatabase(client *sshutil.SSHClient, dbPath string) ([]byte, error) {
 	return nil, fmt.Errorf("unable to read database: %s", dbPath)
 }
 
-// ExtractAllDatabases retrieves all SQLite databases from standard locations
+// ExtractAllDatabases scans standard paths for x-ui databases
 func ExtractAllDatabases(client *sshutil.SSHClient) (map[string][]byte, error) {
 	slog.Info("scanning for all SQLite databases")
 
@@ -72,7 +72,7 @@ func ExtractAllDatabases(client *sshutil.SSHClient) (map[string][]byte, error) {
 	return databases, nil
 }
 
-// VerifyDatabaseIntegrity validates SQLite database integrity
+// VerifyDatabaseIntegrity validates SQLite header and minimum size
 func VerifyDatabaseIntegrity(data []byte) error {
 	slog.Debug("verifying database integrity")
 
@@ -93,7 +93,7 @@ func VerifyDatabaseIntegrity(data []byte) error {
 	return nil
 }
 
-// DatabaseMetadata collects file stats without full database load
+// DatabaseMetadata collects file stats: size, time, permissions, owner, sha256
 func DatabaseMetadata(client *sshutil.SSHClient, dbPath string) (map[string]string, error) {
 	slog.Debug("collecting database metadata", "path", dbPath)
 
@@ -128,7 +128,7 @@ func DatabaseMetadata(client *sshutil.SSHClient, dbPath string) (map[string]stri
 	return metadata, nil
 }
 
-// BackupDatabasePath automatically detects the primary database
+// BackupDatabasePath detects primary database or returns default
 func BackupDatabasePath(client *sshutil.SSHClient) (string, error) {
 	slog.Debug("detecting primary database path")
 
@@ -144,7 +144,7 @@ func BackupDatabasePath(client *sshutil.SSHClient) (string, error) {
 	return defaultPath, nil
 }
 
-// CompareDatabase compares two database versions and returns statistics
+// CompareDatabase returns size/hash/growth diff
 func CompareDatabase(oldData, newData []byte) map[string]interface{} {
 	slog.Debug("comparing databases")
 
@@ -176,7 +176,7 @@ func ValidateDatabaseBackup(data []byte, srcPath string) error {
 		return fmt.Errorf("database integrity check failed: %w", err)
 	}
 
-	minSize := 65536 // 64KB
+	minSize := 65536
 	if len(data) < minSize {
 		slog.Warn("database backup might be incomplete", "size_bytes", len(data), "min_expected", minSize)
 	}
