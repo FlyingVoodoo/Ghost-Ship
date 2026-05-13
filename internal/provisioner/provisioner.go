@@ -2,9 +2,10 @@ package provisioner
 
 import (
 	"fmt"
+	"log/slog"
+
 	"github.com/matvejefimovyh/ghost-ship/internal/config"
 	"github.com/matvejefimovyh/ghost-ship/pkg/sshutil"
-	"log/slog"
 )
 
 func RunFullProvisioning(client *sshutil.SSHClient, m *config.NodeManifest) error {
@@ -24,7 +25,7 @@ func RunFullProvisioning(client *sshutil.SSHClient, m *config.NodeManifest) erro
 		}
 	}
 
-	slog.Info("configuring firewall and hardening")c
+	slog.Info("configuring firewall and hardening")
 	if err := ApplyHardening(client, m.Firewall); err != nil {
 		return fmt.Errorf("hardening stage failed: %w", err)
 	}
