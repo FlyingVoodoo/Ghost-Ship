@@ -1,11 +1,14 @@
 package extractor
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log/slog"
 	"path/filepath"
+	"time"
 
 	"github.com/matvejefimovyh/ghost-ship/internal/config"
+	"github.com/matvejefimovyh/ghost-ship/internal/nomad"
 	"github.com/matvejefimovyh/ghost-ship/pkg/sshutil"
 )
 
@@ -20,6 +23,8 @@ type SystemState struct {
 	Databases     map[string][]byte
 	Configs       map[string][]byte
 	SSHPublicKeys map[string][]byte
+	Docker        *nomad.DockerState
+	Nomad         *nomad.NomadState
 }
 
 // ExtractSystemState gathers all system state from the target server
@@ -30,11 +35,14 @@ func ExtractSystemState(client *sshutil.SSHClient, manifest *config.NodeManifest
 		Hostname:      manifest.Node.Hostname,
 		Location:      manifest.Node.Location,
 		Role:          manifest.Node.Role,
+		Timestamp:     time.Now().Unix(),
 		SystemInfo:    make(map[string]string),
 		Certificates:  make(map[string][]byte),
 		Databases:     make(map[string][]byte),
 		Configs:       make(map[string][]byte),
 		SSHPublicKeys: make(map[string][]byte),
+		Docker:        &nomad.DockerState{Networks: make(map[string]interface{}), VolumeData: make(map[string][]byte)},
+		Nomad:         &nomad.NomadState{Allocations: make(map[string]interface{})},
 	}
 
 	if err := extractSystemInfo(client, state); err != nil {
@@ -55,6 +63,14 @@ func ExtractSystemState(client *sshutil.SSHClient, manifest *config.NodeManifest
 
 	if err := extractSSHKeys(client, state); err != nil {
 		slog.Warn("partial failure extracting ssh keys", "error", err)
+	}
+
+	if err := extractDockerState(client, state); err != nil {
+		slog.Warn("failed to extract docker state", "error", err)
+	}
+
+	if err := extractNomadState(client, state); err != nil {
+		slog.Warn("failed to extract nomad state", "error", err)
 	}
 
 	slog.Info("system state extraction completed",
@@ -185,4 +201,81 @@ func ValidateState(state *SystemState) error {
 
 	slog.Info("state validation completed", "databases", len(state.Databases), "certificates", len(state.Certificates))
 	return nil
+}
+
+func extractDockerState(client *sshutil.SSHClient, state *SystemState) error {
+	slog.Info("extracting docker state")
+
+	dockerState, err := nomad.ExtractDockerState(client)
+	if err != nil {
+		return fmt.Errorf("docker extraction failed: %w", err)
+	}
+
+	state.Docker = dockerState
+
+	slog.Info("docker state extracted", "containers", len(dockerState.Containers), "volumes", len(dockerState.Volumes), "volume_data_entries", len(dockerState.VolumeData))
+	return nil
+}
+
+func extractNomadState(client *sshutil.SSHClient, state *SystemState) error {
+	slog.Info("extracting nomad state")
+
+	nomadState, err := nomad.ExtractNomadState(client)
+	if err != nil {
+		return fmt.Errorf("nomad extraction failed: %w", err)
+	}
+
+	state.Nomad = nomadState
+
+	slog.Info("nomad state extracted", "jobs", len(nomadState.Jobs))
+	return nil
+}
+
+func RestoreSystemState(client *sshutil.SSHClient, state *SystemState) error {
+	slog.Info("restoring system state to target server")
+
+	if len(state.Databases) > 0 {
+		slog.Info("restoring databases")
+		for name, data := range state.Databases {
+			path := "/opt/3x-ui/db/" + name
+			cmd := fmt.Sprintf("echo '%s' | base64 -d | sudo tee %s > /dev/null", encodeBase64(string(data)), path)
+			if _, err := client.Run(cmd); err != nil {
+				slog.Warn("failed to restore database", "name", name, "error", err)
+			}
+		}
+	}
+
+	if len(state.Configs) > 0 {
+		slog.Info("restoring configurations")
+		for name, data := range state.Configs {
+			if name == "xray.json" {
+				path := "/etc/x-ui/xray.json"
+				cmd := fmt.Sprintf("echo '%s' | base64 -d | sudo tee %s > /dev/null", encodeBase64(string(data)), path)
+				if _, err := client.Run(cmd); err != nil {
+					slog.Warn("failed to restore xray config", "error", err)
+				}
+			}
+		}
+	}
+
+	if state.Docker != nil && len(state.Docker.Containers) > 0 {
+		slog.Info("restoring docker state")
+		if err := nomad.RestoreDockerState(client, state.Docker); err != nil {
+			slog.Warn("docker state restoration failed", "error", err)
+		}
+	}
+
+	if state.Nomad != nil && len(state.Nomad.Jobs) > 0 {
+		slog.Info("restoring nomad jobs")
+		if err := nomad.RestoreNomadState(client, state.Nomad); err != nil {
+			slog.Warn("nomad state restoration failed", "error", err)
+		}
+	}
+
+	slog.Info("system state restoration completed")
+	return nil
+}
+
+func encodeBase64(data string) string {
+	return base64.StdEncoding.EncodeToString([]byte(data))
 }
