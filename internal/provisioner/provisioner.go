@@ -24,6 +24,11 @@ func RunFullProvisioning(client *sshutil.SSHClient, m *config.NodeManifest) erro
 		}
 	}
 
+	slog.Info("configuring firewall and hardening")c
+	if err := ApplyHardening(client, m.Firewall); err != nil {
+		return fmt.Errorf("hardening stage failed: %w", err)
+	}
+
 	slog.Info("provisioning completed successfully")
 	return nil
 }
