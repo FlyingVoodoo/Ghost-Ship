@@ -23,7 +23,7 @@ const banner = `
 `
 
 func main() {
-	fmt.Println(banner)
+	fmt.Print(banner)
 
 	if len(os.Args) < 2 {
 		printUsage()
@@ -77,7 +77,7 @@ func main() {
 }
 
 func printUsage() {
-	fmt.Println(`
+	fmt.Print(`
 Available commands:
   land <IP> [config]      - Provision a fresh VPS (Full hardening + Docker + Nomad)
   extract <config>        - Extract system state for migration
