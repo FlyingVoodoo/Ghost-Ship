@@ -28,7 +28,7 @@ type SystemState struct {
 }
 
 // ExtractSystemState gathers all system state from the target server
-func ExtractSystemState(client *sshutil.SSHClient, manifest *config.NodeManifest) (*SystemState, error) {
+func ExtractSystemState(client sshutil.SSHRunner, manifest *config.NodeManifest) (*SystemState, error) {
 	slog.Info("starting system state extraction", "node", manifest.Node.Hostname)
 
 	state := &SystemState{
@@ -82,7 +82,7 @@ func ExtractSystemState(client *sshutil.SSHClient, manifest *config.NodeManifest
 	return state, nil
 }
 
-func extractSystemInfo(client *sshutil.SSHClient, state *SystemState) error {
+func extractSystemInfo(client sshutil.SSHRunner, state *SystemState) error {
 	slog.Debug("extracting system information")
 
 	items := []struct {
@@ -104,7 +104,7 @@ func extractSystemInfo(client *sshutil.SSHClient, state *SystemState) error {
 	return nil
 }
 
-func extractCertificates(client *sshutil.SSHClient, state *SystemState) error {
+func extractCertificates(client sshutil.SSHRunner, state *SystemState) error {
 	certs, err := ExtractCertificates(client)
 	if err != nil {
 		return fmt.Errorf("extract certificates failed: %w", err)
@@ -121,7 +121,7 @@ func extractCertificates(client *sshutil.SSHClient, state *SystemState) error {
 	return nil
 }
 
-func extractDatabases(client *sshutil.SSHClient, state *SystemState) error {
+func extractDatabases(client sshutil.SSHRunner, state *SystemState) error {
 	commonPaths := []string{
 		"/opt/3x-ui/db/x-ui.db",
 		"/opt/x-ui/db/x-ui.db",
@@ -150,7 +150,7 @@ func extractDatabases(client *sshutil.SSHClient, state *SystemState) error {
 	return nil
 }
 
-func extractConfigs(client *sshutil.SSHClient, state *SystemState) error {
+func extractConfigs(client sshutil.SSHRunner, state *SystemState) error {
 	configPaths := map[string]string{
 		"docker_config":   "/etc/docker/daemon.json",
 		"nomad_config":    "/etc/nomad.d/nomad.hcl",
@@ -167,7 +167,7 @@ func extractConfigs(client *sshutil.SSHClient, state *SystemState) error {
 	return nil
 }
 
-func extractSSHKeys(client *sshutil.SSHClient, state *SystemState) error {
+func extractSSHKeys(client sshutil.SSHRunner, state *SystemState) error {
 	keys := []struct {
 		name string
 		cmd  string
@@ -203,7 +203,7 @@ func ValidateState(state *SystemState) error {
 	return nil
 }
 
-func extractDockerState(client *sshutil.SSHClient, state *SystemState) error {
+func extractDockerState(client sshutil.SSHRunner, state *SystemState) error {
 	slog.Info("extracting docker state")
 
 	dockerState, err := nomad.ExtractDockerState(client)
@@ -217,7 +217,7 @@ func extractDockerState(client *sshutil.SSHClient, state *SystemState) error {
 	return nil
 }
 
-func extractNomadState(client *sshutil.SSHClient, state *SystemState) error {
+func extractNomadState(client sshutil.SSHRunner, state *SystemState) error {
 	slog.Info("extracting nomad state")
 
 	nomadState, err := nomad.ExtractNomadState(client)
@@ -231,7 +231,7 @@ func extractNomadState(client *sshutil.SSHClient, state *SystemState) error {
 	return nil
 }
 
-func RestoreSystemState(client *sshutil.SSHClient, state *SystemState) error {
+func RestoreSystemState(client sshutil.SSHRunner, state *SystemState) error {
 	slog.Info("restoring system state to target server")
 
 	if len(state.Databases) > 0 {

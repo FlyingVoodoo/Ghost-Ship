@@ -25,7 +25,7 @@ type NomadState struct {
 	Allocations map[string]interface{} `json:"allocations"`
 }
 
-func ExtractNomadState(client *sshutil.SSHClient) (*NomadState, error) {
+func ExtractNomadState(client sshutil.SSHRunner) (*NomadState, error) {
 	slog.Info("extracting nomad state")
 
 	if err := ValidateNomadInstall(client); err != nil {
@@ -51,7 +51,7 @@ func ExtractNomadState(client *sshutil.SSHClient) (*NomadState, error) {
 	return state, nil
 }
 
-func extractNomadJobs(client *sshutil.SSHClient) ([]NomadJob, error) {
+func extractNomadJobs(client sshutil.SSHRunner) ([]NomadJob, error) {
 	out, err := client.Run("nomad job list -json 2>/dev/null")
 	if err != nil {
 		return nil, fmt.Errorf("nomad job list failed: %w", err)
@@ -77,7 +77,7 @@ func extractNomadJobs(client *sshutil.SSHClient) ([]NomadJob, error) {
 	return jobs, nil
 }
 
-func extractNomadJobDetails(client *sshutil.SSHClient, jobID string) (NomadJob, error) {
+func extractNomadJobDetails(client sshutil.SSHRunner, jobID string) (NomadJob, error) {
 	out, err := client.Run(fmt.Sprintf("nomad job inspect %s -json 2>/dev/null", jobID))
 	if err != nil {
 		return NomadJob{}, err
@@ -133,7 +133,7 @@ func extractNomadJobDetails(client *sshutil.SSHClient, jobID string) (NomadJob, 
 	return job, nil
 }
 
-func RestoreNomadState(client *sshutil.SSHClient, state *NomadState) error {
+func RestoreNomadState(client sshutil.SSHRunner, state *NomadState) error {
 	if len(state.Jobs) == 0 {
 		slog.Info("no nomad jobs to restore")
 		return nil
@@ -152,7 +152,7 @@ func RestoreNomadState(client *sshutil.SSHClient, state *NomadState) error {
 	return nil
 }
 
-func restoreNomadJob(client *sshutil.SSHClient, job NomadJob) error {
+func restoreNomadJob(client sshutil.SSHRunner, job NomadJob) error {
 	if job.RawJobspec == "" {
 		return fmt.Errorf("no job specification available")
 	}
@@ -176,7 +176,7 @@ func restoreNomadJob(client *sshutil.SSHClient, job NomadJob) error {
 	return nil
 }
 
-func ValidateNomadInstall(client *sshutil.SSHClient) error {
+func ValidateNomadInstall(client sshutil.SSHRunner) error {
 	_, err := client.Run("which nomad")
 	if err != nil {
 		return fmt.Errorf("nomad not installed")
@@ -197,7 +197,7 @@ func ValidateNomadInstall(client *sshutil.SSHClient) error {
 	return nil
 }
 
-func GetNomadAllocations(client *sshutil.SSHClient, jobID string) (map[string]interface{}, error) {
+func GetNomadAllocations(client sshutil.SSHRunner, jobID string) (map[string]interface{}, error) {
 	out, err := client.Run(fmt.Sprintf("nomad job allocations %s -json 2>/dev/null", jobID))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get allocations: %w", err)

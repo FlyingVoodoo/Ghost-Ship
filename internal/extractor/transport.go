@@ -1,3 +1,5 @@
+//go:build cgo_streamer
+
 package extractor
 
 /*
@@ -239,7 +241,7 @@ func UnpackSystemState(stream *StreamState) (*SystemState, error) {
 }
 
 // TransmitState transmits encrypted stream to remote via SSH with base64 encoding
-func TransmitState(client *sshutil.SSHClient, stream *StreamState, targetPath string) error {
+func TransmitState(client sshutil.SSHRunner, stream *StreamState, targetPath string) error {
 	slog.Info("transmitting state to target server",
 		"target_path", targetPath,
 		"size_mb", float64(len(stream.Data))/1024/1024,

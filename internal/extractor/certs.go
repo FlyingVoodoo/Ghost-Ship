@@ -9,7 +9,7 @@ import (
 )
 
 // ExtractCertificates retrieves all Let's Encrypt certificates from the server
-func ExtractCertificates(client *sshutil.SSHClient) (map[string][]byte, error) {
+func ExtractCertificates(client sshutil.SSHRunner) (map[string][]byte, error) {
 	slog.Info("extracting let's encrypt certificates")
 
 	certs := make(map[string][]byte)
@@ -63,7 +63,7 @@ func ExtractCertificates(client *sshutil.SSHClient) (map[string][]byte, error) {
 }
 
 // ExtractXrayConfig retrieves Xray configuration from the server
-func ExtractXrayConfig(client *sshutil.SSHClient) ([]byte, error) {
+func ExtractXrayConfig(client sshutil.SSHRunner) ([]byte, error) {
 	slog.Debug("extracting xray configuration")
 
 	commonPaths := []string{
@@ -91,7 +91,7 @@ func ExtractXrayConfig(client *sshutil.SSHClient) ([]byte, error) {
 }
 
 // ExtractXrayState retrieves full Xray state (config and statistics)
-func ExtractXrayState(client *sshutil.SSHClient) (map[string][]byte, error) {
+func ExtractXrayState(client sshutil.SSHRunner) (map[string][]byte, error) {
 	slog.Info("extracting xray full state")
 
 	state := make(map[string][]byte)
@@ -112,7 +112,7 @@ func ExtractXrayState(client *sshutil.SSHClient) (map[string][]byte, error) {
 }
 
 // readRemoteFile reads remote file content, with sudo fallback for protected files
-func readRemoteFile(client *sshutil.SSHClient, filePath string) ([]byte, error) {
+func readRemoteFile(client sshutil.SSHRunner, filePath string) ([]byte, error) {
 	out, err := client.Run(fmt.Sprintf("cat %s 2>/dev/null", filePath))
 	if err == nil && len(out) > 0 {
 		return []byte(out), nil
@@ -127,7 +127,7 @@ func readRemoteFile(client *sshutil.SSHClient, filePath string) ([]byte, error) 
 }
 
 // BackupCertificatePaths returns list of certificate paths on the server
-func BackupCertificatePaths(client *sshutil.SSHClient) ([]string, error) {
+func BackupCertificatePaths(client sshutil.SSHRunner) ([]string, error) {
 	slog.Debug("retrieving certificate paths")
 
 	var paths []string

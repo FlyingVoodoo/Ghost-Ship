@@ -8,7 +8,7 @@ import (
 	"github.com/matvejefimovyh/ghost-ship/pkg/sshutil"
 )
 
-func ApplyHardening(client *sshutil.SSHClient, fw config.FirewallConfig) error {
+func ApplyHardening(client sshutil.SSHRunner, fw config.FirewallConfig) error {
 	slog.Info("applying network hardening rules", "backend", fw.Backend)
 
 	if fw.Backend != "ufw" {
@@ -26,7 +26,7 @@ func ApplyHardening(client *sshutil.SSHClient, fw config.FirewallConfig) error {
 		slog.Info("firewall: opening custom port", "port", port)
 		cmd := fmt.Sprintf("sudo ufw allow %d", port)
 		if _, err := client.Run(cmd); err != nil {
-			return fmt.Errorf("failed to allow port %d: %w", err)
+			return fmt.Errorf("failed to allow port %d: %w", port, err)
 		}
 	}
 

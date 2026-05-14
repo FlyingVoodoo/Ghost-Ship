@@ -11,8 +11,19 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # Find dependencies
 find_package(OpenSSL 1.1.1 REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LZ4 REQUIRED liblz4)
+find_package(PkgConfig)
+if(PKG_CONFIG_FOUND)
+    pkg_check_modules(LZ4 REQUIRED liblz4)
+else()
+    find_path(LZ4_INCLUDE_DIR NAMES lz4.h PATHS /usr/local/include /opt/homebrew/include /usr/include)
+    find_library(LZ4_LIBRARY NAMES lz4 PATHS /usr/local/lib /opt/homebrew/lib /usr/lib)
+    if(LZ4_INCLUDE_DIR AND LZ4_LIBRARY)
+        set(LZ4_INCLUDE_DIRS ${LZ4_INCLUDE_DIR})
+        set(LZ4_LIBRARIES ${LZ4_LIBRARY})
+    else()
+        message(FATAL_ERROR "liblz4 not found; install lz4 or pkg-config")
+    endif()
+endif()
 
 # Streamer library
 add_library(streamer STATIC

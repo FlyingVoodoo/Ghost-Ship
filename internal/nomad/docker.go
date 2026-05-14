@@ -30,7 +30,7 @@ type DockerState struct {
 	ComposeYaml string                 `json:"compose_yaml"`
 }
 
-func ExtractDockerState(client *sshutil.SSHClient) (*DockerState, error) {
+func ExtractDockerState(client sshutil.SSHRunner) (*DockerState, error) {
 	slog.Info("extracting docker state")
 
 	state := &DockerState{
@@ -82,7 +82,7 @@ func ExtractDockerState(client *sshutil.SSHClient) (*DockerState, error) {
 	return state, nil
 }
 
-func extractContainers(client *sshutil.SSHClient) ([]ContainerConfig, error) {
+func extractContainers(client sshutil.SSHRunner) ([]ContainerConfig, error) {
 	out, err := client.Run("docker ps -a --format '{{json .}}'")
 	if err != nil {
 		return nil, fmt.Errorf("docker ps failed: %w", err)
@@ -111,7 +111,7 @@ func extractContainers(client *sshutil.SSHClient) ([]ContainerConfig, error) {
 	return containers, nil
 }
 
-func extractFullContainerConfig(client *sshutil.SSHClient, containerID string) (ContainerConfig, error) {
+func extractFullContainerConfig(client sshutil.SSHRunner, containerID string) (ContainerConfig, error) {
 	out, err := client.Run(fmt.Sprintf("docker inspect %s", containerID))
 	if err != nil {
 		return ContainerConfig{}, err
@@ -191,7 +191,7 @@ func extractFullContainerConfig(client *sshutil.SSHClient, containerID string) (
 	return config, nil
 }
 
-func extractImages(client *sshutil.SSHClient) ([]string, error) {
+func extractImages(client sshutil.SSHRunner) ([]string, error) {
 	out, err := client.Run("docker images --format '{{.Repository}}:{{.Tag}}'")
 	if err != nil {
 		return nil, fmt.Errorf("docker images failed: %w", err)
@@ -207,7 +207,7 @@ func extractImages(client *sshutil.SSHClient) ([]string, error) {
 	return images, nil
 }
 
-func extractVolumes(client *sshutil.SSHClient) ([]string, error) {
+func extractVolumes(client sshutil.SSHRunner) ([]string, error) {
 	out, err := client.Run("docker volume ls --format '{{.Name}}'")
 	if err != nil {
 		return nil, fmt.Errorf("docker volume ls failed: %w", err)
@@ -223,7 +223,7 @@ func extractVolumes(client *sshutil.SSHClient) ([]string, error) {
 	return volumes, nil
 }
 
-func extractVolumeData(client *sshutil.SSHClient) (map[string][]byte, error) {
+func extractVolumeData(client sshutil.SSHRunner) (map[string][]byte, error) {
 	volumeData := make(map[string][]byte)
 
 	out, err := client.Run("docker volume ls --format '{{.Name}}'")
@@ -252,7 +252,7 @@ func extractVolumeData(client *sshutil.SSHClient) (map[string][]byte, error) {
 	return volumeData, nil
 }
 
-func extractDockerCompose(client *sshutil.SSHClient) (string, error) {
+func extractDockerCompose(client sshutil.SSHRunner) (string, error) {
 	possiblePaths := []string{
 		"/opt/3x-ui/docker-compose.yaml",
 		"/opt/3x-ui/docker-compose.yml",
@@ -271,7 +271,7 @@ func extractDockerCompose(client *sshutil.SSHClient) (string, error) {
 	return "", fmt.Errorf("docker-compose.yaml not found")
 }
 
-func RestoreDockerState(client *sshutil.SSHClient, state *DockerState) error {
+func RestoreDockerState(client sshutil.SSHRunner, state *DockerState) error {
 	slog.Info("restoring docker state", "containers", len(state.Containers))
 
 	if err := restoreVolumeData(client, state.VolumeData); err != nil {
@@ -295,7 +295,7 @@ func RestoreDockerState(client *sshutil.SSHClient, state *DockerState) error {
 	return nil
 }
 
-func restoreVolumeData(client *sshutil.SSHClient, volumeData map[string][]byte) error {
+func restoreVolumeData(client sshutil.SSHRunner, volumeData map[string][]byte) error {
 	if len(volumeData) == 0 {
 		slog.Info("no volume data to restore")
 		return nil
@@ -325,7 +325,7 @@ func restoreVolumeData(client *sshutil.SSHClient, volumeData map[string][]byte) 
 	return nil
 }
 
-func restoreComposeYaml(client *sshutil.SSHClient, yamlContent string) error {
+func restoreComposeYaml(client sshutil.SSHRunner, yamlContent string) error {
 	composeDir := "/opt/3x-ui"
 	client.Run(fmt.Sprintf("mkdir -p %s", composeDir))
 
@@ -343,7 +343,7 @@ func restoreComposeYaml(client *sshutil.SSHClient, yamlContent string) error {
 	return nil
 }
 
-func restoreContainer(client *sshutil.SSHClient, container ContainerConfig) error {
+func restoreContainer(client sshutil.SSHRunner, container ContainerConfig) error {
 	if container.Image == "" {
 		return fmt.Errorf("container %s has no image", container.Name)
 	}
@@ -376,12 +376,12 @@ func restoreContainer(client *sshutil.SSHClient, container ContainerConfig) erro
 	return nil
 }
 
-func validateContainerdRuntime(client *sshutil.SSHClient) bool {
+func validateContainerdRuntime(client sshutil.SSHRunner) bool {
 	_, err := client.Run("which containerd")
 	return err == nil
 }
 
-func ValidateDockerState(client *sshutil.SSHClient) error {
+func ValidateDockerState(client sshutil.SSHRunner) error {
 	slog.Info("validating docker installation")
 
 	_, err := client.Run("docker --version")

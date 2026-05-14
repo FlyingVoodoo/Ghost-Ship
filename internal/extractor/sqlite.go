@@ -11,7 +11,7 @@ import (
 )
 
 // ExtractDatabase retrieves SQLite database with privilege escalation
-func ExtractDatabase(client *sshutil.SSHClient, dbPath string) ([]byte, error) {
+func ExtractDatabase(client sshutil.SSHRunner, dbPath string) ([]byte, error) {
 	slog.Info("extracting database", "path", dbPath)
 
 	out, err := client.Run(fmt.Sprintf("cat %s 2>/dev/null", dbPath))
@@ -36,7 +36,7 @@ func ExtractDatabase(client *sshutil.SSHClient, dbPath string) ([]byte, error) {
 }
 
 // ExtractAllDatabases scans standard paths for x-ui databases
-func ExtractAllDatabases(client *sshutil.SSHClient) (map[string][]byte, error) {
+func ExtractAllDatabases(client sshutil.SSHRunner) (map[string][]byte, error) {
 	slog.Info("scanning for all SQLite databases")
 
 	databases := make(map[string][]byte)
@@ -94,7 +94,7 @@ func VerifyDatabaseIntegrity(data []byte) error {
 }
 
 // DatabaseMetadata collects file stats: size, time, permissions, owner, sha256
-func DatabaseMetadata(client *sshutil.SSHClient, dbPath string) (map[string]string, error) {
+func DatabaseMetadata(client sshutil.SSHRunner, dbPath string) (map[string]string, error) {
 	slog.Debug("collecting database metadata", "path", dbPath)
 
 	metadata := make(map[string]string)
@@ -129,7 +129,7 @@ func DatabaseMetadata(client *sshutil.SSHClient, dbPath string) (map[string]stri
 }
 
 // BackupDatabasePath detects primary database or returns default
-func BackupDatabasePath(client *sshutil.SSHClient) (string, error) {
+func BackupDatabasePath(client sshutil.SSHRunner) (string, error) {
 	slog.Debug("detecting primary database path")
 
 	out, err := client.Run("find /opt /app /var/lib -name '*x-ui*.db' -type f 2>/dev/null | head -1")

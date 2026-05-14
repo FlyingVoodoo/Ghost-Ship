@@ -7,8 +7,16 @@ import (
 
 	"golang.org/x/crypto/ssh"
 )
+
 type SSHClient struct {
 	client *ssh.Client
+}
+
+// SSHRunner defines the minimal SSH client interface used across the project.
+// Use this in function signatures to allow mocking in tests.
+type SSHRunner interface {
+	Run(cmd string) (string, error)
+	Close() error
 }
 
 func NewSSHClient(user, host string, port int, keyPath string) (*SSHClient, error) {

@@ -33,7 +33,7 @@ type TelegramConfig struct {
 	ChatID   string
 }
 
-func RunSecurityAudit(client *sshutil.SSHClient, telegramCfg *TelegramConfig) (*AuditReport, error) {
+func RunSecurityAudit(client sshutil.SSHRunner, telegramCfg *TelegramConfig) (*AuditReport, error) {
 	slog.Info("starting security audit")
 
 	hostname, _ := client.Run("hostname")
@@ -66,7 +66,7 @@ func RunSecurityAudit(client *sshutil.SSHClient, telegramCfg *TelegramConfig) (*
 	return report, nil
 }
 
-func auditSystemSecurity(client *sshutil.SSHClient, report *AuditReport) {
+func auditSystemSecurity(client sshutil.SSHRunner, report *AuditReport) {
 	slog.Debug("auditing system security")
 
 	checks := []struct {
@@ -126,7 +126,7 @@ func auditSystemSecurity(client *sshutil.SSHClient, report *AuditReport) {
 	}
 }
 
-func auditDockerSecurity(client *sshutil.SSHClient, report *AuditReport) {
+func auditDockerSecurity(client sshutil.SSHRunner, report *AuditReport) {
 	slog.Debug("auditing docker security")
 
 	if _, err := client.Run("which docker"); err != nil {
@@ -198,7 +198,7 @@ func auditDockerSecurity(client *sshutil.SSHClient, report *AuditReport) {
 	}
 }
 
-func auditNomadSecurity(client *sshutil.SSHClient, report *AuditReport) {
+func auditNomadSecurity(client sshutil.SSHRunner, report *AuditReport) {
 	slog.Debug("auditing nomad security")
 
 	if _, err := client.Run("which nomad"); err != nil {

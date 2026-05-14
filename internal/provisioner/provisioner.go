@@ -8,7 +8,7 @@ import (
 	"github.com/matvejefimovyh/ghost-ship/pkg/sshutil"
 )
 
-func RunFullProvisioning(client *sshutil.SSHClient, m *config.NodeManifest) error {
+func RunFullProvisioning(client sshutil.SSHRunner, m *config.NodeManifest) error {
 	slog.Info("provisioning sequence initiated")
 
 	slog.Info("executing system update", "command", "apt-get update")
