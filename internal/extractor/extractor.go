@@ -1,7 +1,6 @@
 package extractor
 
 import (
-	"encoding/base64"
 	"fmt"
 	"log/slog"
 	"path/filepath"
@@ -238,8 +237,7 @@ func RestoreSystemState(client sshutil.SSHRunner, state *SystemState) error {
 		slog.Info("restoring databases")
 		for name, data := range state.Databases {
 			path := "/opt/3x-ui/db/" + name
-			cmd := fmt.Sprintf("echo '%s' | base64 -d | sudo tee %s > /dev/null", encodeBase64(string(data)), path)
-			if _, err := client.Run(cmd); err != nil {
+			if err := restoreBytesIfChanged(client, path, data, true); err != nil {
 				slog.Warn("failed to restore database", "name", name, "error", err)
 			}
 		}
@@ -250,8 +248,7 @@ func RestoreSystemState(client sshutil.SSHRunner, state *SystemState) error {
 		for name, data := range state.Configs {
 			if name == "xray.json" {
 				path := "/etc/x-ui/xray.json"
-				cmd := fmt.Sprintf("echo '%s' | base64 -d | sudo tee %s > /dev/null", encodeBase64(string(data)), path)
-				if _, err := client.Run(cmd); err != nil {
+				if err := restoreBytesIfChanged(client, path, data, true); err != nil {
 					slog.Warn("failed to restore xray config", "error", err)
 				}
 			}
@@ -274,8 +271,4 @@ func RestoreSystemState(client sshutil.SSHRunner, state *SystemState) error {
 
 	slog.Info("system state restoration completed")
 	return nil
-}
-
-func encodeBase64(data string) string {
-	return base64.StdEncoding.EncodeToString([]byte(data))
 }
