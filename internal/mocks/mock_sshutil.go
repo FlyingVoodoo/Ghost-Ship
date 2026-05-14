@@ -11,6 +11,7 @@ import (
 
 type MockSSHRunner struct {
 	Responses map[string]string
+	Commands  []string
 }
 
 func NewMockSSHRunner(responses map[string]string) *MockSSHRunner {
@@ -21,6 +22,7 @@ func NewMockSSHRunner(responses map[string]string) *MockSSHRunner {
 }
 
 func (m *MockSSHRunner) Run(cmd string) (string, error) {
+	m.Commands = append(m.Commands, cmd)
 	for k, v := range m.Responses {
 		if strings.Contains(cmd, k) {
 			return v, nil

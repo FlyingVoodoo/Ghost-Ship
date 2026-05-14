@@ -334,10 +334,10 @@ func restoreComposeYaml(client sshutil.SSHRunner, yamlContent string) error {
 		return fmt.Errorf("failed to write docker-compose.yaml: %w", err)
 	}
 
-	upCmd := fmt.Sprintf("cd %s && docker-compose up -d", composeDir)
+	upCmd := fmt.Sprintf("cd %s && docker compose up -d", composeDir)
 	_, err := client.Run(upCmd)
 	if err != nil {
-		return fmt.Errorf("docker-compose up failed: %w", err)
+		return fmt.Errorf("docker compose up failed: %w", err)
 	}
 
 	return nil

@@ -30,6 +30,10 @@ func RunFullProvisioning(client sshutil.SSHRunner, m *config.NodeManifest) error
 		return fmt.Errorf("hardening stage failed: %w", err)
 	}
 
+	if err := DeployServices(client, m.Services); err != nil {
+		return fmt.Errorf("service deployment failed: %w", err)
+	}
+
 	slog.Info("provisioning completed successfully")
 	return nil
 }
