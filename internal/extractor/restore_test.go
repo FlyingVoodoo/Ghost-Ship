@@ -43,6 +43,7 @@ func TestRestoreBytesIfChanged_WritesAndVerifies(t *testing.T) {
 	mock := mocks.NewMockSSHRunner(nil)
 	mock.Scripts = []mocks.MockScript{
 		{Contains: fmt.Sprintf("sudo sha256sum %s", remotePath), Outcomes: []mocks.MockOutcome{{Err: fmt.Errorf("not found")}, {Response: fmt.Sprintf("%s  %s", hashHex, remotePath)}}},
+		{Contains: "sudo mkdir -p /etc/x-ui", Outcomes: []mocks.MockOutcome{{Response: ""}}},
 		{Contains: fmt.Sprintf("sudo tee %s", remotePath), Outcomes: []mocks.MockOutcome{{Response: "written"}}},
 		{Contains: fmt.Sprintf("sudo stat -c %%s %s", remotePath), Outcomes: []mocks.MockOutcome{{Response: fmt.Sprintf("%d", len(data))}, {Response: fmt.Sprintf("%d", len(data))}}},
 		{Contains: encoded, Outcomes: []mocks.MockOutcome{{Response: encoded}}},
@@ -60,5 +61,38 @@ func TestRestoreBytesIfChanged_WritesAndVerifies(t *testing.T) {
 	}
 	if !seenWrite {
 		t.Fatalf("expected a write command to be executed")
+	}
+}
+
+func TestRestoreSystemState_RestoresCertificates(t *testing.T) {
+	data := []byte("cert-data")
+	hash := sha256.Sum256(data)
+	hashHex := hex.EncodeToString(hash[:])
+	remotePath := "/etc/letsencrypt/live/example.com/cert.pem"
+
+	mock := mocks.NewMockSSHRunner(nil)
+	mock.Scripts = []mocks.MockScript{
+		{Contains: fmt.Sprintf("sudo sha256sum %s", remotePath), Outcomes: []mocks.MockOutcome{{Err: fmt.Errorf("not found")}, {Response: fmt.Sprintf("%s  %s", hashHex, remotePath)}}},
+		{Contains: fmt.Sprintf("sudo mkdir -p /etc/letsencrypt/live/example.com"), Outcomes: []mocks.MockOutcome{{Response: ""}}},
+		{Contains: fmt.Sprintf("sudo tee %s", remotePath), Outcomes: []mocks.MockOutcome{{Response: "written"}}},
+		{Contains: fmt.Sprintf("sudo stat -c %%s %s", remotePath), Outcomes: []mocks.MockOutcome{{Response: fmt.Sprintf("%d", len(data))}}},
+	}
+
+	state := &SystemState{
+		Certificates: map[string][]byte{"example.com/cert.pem": data},
+	}
+
+	if err := RestoreSystemState(mock, state); err != nil {
+		t.Fatalf("RestoreSystemState returned error: %v", err)
+	}
+
+	seenWrite := false
+	for _, cmd := range mock.Commands {
+		if strings.Contains(cmd, remotePath) && strings.Contains(cmd, "tee") {
+			seenWrite = true
+		}
+	}
+	if !seenWrite {
+		t.Fatalf("expected certificate write command to be executed")
 	}
 }

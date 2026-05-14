@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log/slog"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -32,6 +33,10 @@ func restoreBytesIfChanged(client sshutil.SSHRunner, remotePath string, data []b
 		return nil
 	}
 
+	if err := ensureRemoteParentDir(client, remotePath, useSudo); err != nil {
+		return err
+	}
+
 	encoded := base64.StdEncoding.EncodeToString(data)
 	teeCmd := "tee"
 	if useSudo {
@@ -51,6 +56,18 @@ func restoreBytesIfChanged(client sshutil.SSHRunner, remotePath string, data []b
 	}
 
 	slog.Info("file restored and verified", "path", remotePath, "size", len(data))
+	return nil
+}
+
+func ensureRemoteParentDir(client sshutil.SSHRunner, remotePath string, useSudo bool) error {
+	parentDir := filepath.Dir(remotePath)
+	cmd := fmt.Sprintf("mkdir -p %s", parentDir)
+	if useSudo {
+		cmd = fmt.Sprintf("sudo %s", cmd)
+	}
+	if _, err := client.Run(cmd); err != nil {
+		return fmt.Errorf("failed to create parent directory for %s: %w", remotePath, err)
+	}
 	return nil
 }
 

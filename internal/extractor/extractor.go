@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/matvejefimovyh/ghost-ship/internal/config"
@@ -243,6 +244,20 @@ func RestoreSystemState(client sshutil.SSHRunner, state *SystemState) error {
 		}
 	}
 
+	if len(state.Certificates) > 0 {
+		slog.Info("restoring certificates")
+		for name, data := range state.Certificates {
+			path := certificateRestorePath(name)
+			if path == "" {
+				slog.Warn("unable to determine certificate restore path", "name", name)
+				continue
+			}
+			if err := restoreBytesIfChanged(client, path, data, true); err != nil {
+				slog.Warn("failed to restore certificate", "name", name, "error", err)
+			}
+		}
+	}
+
 	if len(state.Configs) > 0 {
 		slog.Info("restoring configurations")
 		for name, data := range state.Configs {
@@ -271,4 +286,12 @@ func RestoreSystemState(client sshutil.SSHRunner, state *SystemState) error {
 
 	slog.Info("system state restoration completed")
 	return nil
+}
+
+func certificateRestorePath(name string) string {
+	parts := strings.Split(name, "/")
+	if len(parts) != 2 {
+		return ""
+	}
+	return "/etc/letsencrypt/live/" + parts[0] + "/" + parts[1]
 }
